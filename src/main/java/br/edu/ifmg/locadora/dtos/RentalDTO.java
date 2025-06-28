@@ -1,6 +1,8 @@
 package br.edu.ifmg.locadora.dtos;
 
 import br.edu.ifmg.locadora.entities.Rental;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,7 +13,9 @@ import java.time.Instant;
 @NoArgsConstructor
 public class RentalDTO {
     private Long id;
+    @Future(message = "A data da locação deve ser uma data futura.")
     private Instant rentalDate;
+    @Future(message = "A data da locação deve ser uma data futura.")
     private Instant returnDate;
     private UserDTO user;
     private VehicleDTO vehicle;

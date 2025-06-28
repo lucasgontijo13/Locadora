@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "user") // Tabela agora é 'cliente'
+@Table(name = "tb_user") // Tabela agora é 'cliente'
 @Getter
 @Setter
 @NoArgsConstructor

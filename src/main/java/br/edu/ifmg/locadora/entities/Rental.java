@@ -9,7 +9,7 @@ import lombok.Setter;
 import java.time.Instant;
 
 @Entity
-@Table(name = "rental")
+@Table(name = "tb_rental")
 @Getter
 @Setter
 @AllArgsConstructor

@@ -1,8 +1,7 @@
-package br.edu.ifmg.locadora.repositories;
+package br.edu.ifmg.locadora.repositories; // ou .repository
 
-
-import br.edu.ifmg.locadora.entities.Vehicle;
 import br.edu.ifmg.locadora.entities.Rental;
+import br.edu.ifmg.locadora.entities.Vehicle;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -13,8 +12,6 @@ import java.util.List;
 @Repository
 public interface RentalRepository extends JpaRepository<Rental, Long> {
 
-    // Query para verificar se já existe um aluguel para o mesmo veículo
-    // que se sobreponha às datas desejadas.
     @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END " +
             "FROM Rental r " +
             "WHERE r.vehicle = :vehicle " +
@@ -22,5 +19,6 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
             "AND r.returnDate > :rentalDate")
     boolean existsRentalConflict(Vehicle vehicle, Instant rentalDate, Instant returnDate);
 
-    List<Rental> findByClienteId(Long clienteId);
+    // Correção do nome do método:
+    List<Rental> findByUserId(Long userId); // <<< CORREÇÃO AQUI
 }
