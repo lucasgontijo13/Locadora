@@ -1,5 +1,6 @@
 package br.edu.ifmg.locadora.services;
 
+import br.edu.ifmg.locadora.dtos.RoleDTO;
 import br.edu.ifmg.locadora.dtos.UserDTO;
 import br.edu.ifmg.locadora.dtos.UserInsertDTO;
 import br.edu.ifmg.locadora.entities.Role;
@@ -53,10 +54,8 @@ public class UserService implements UserDetailsService {
         User entity = new User();
         copyDtoToEntity(dto, entity);
 
-        Role role = roleRepository.findByAuthority("ROLE_CLIENT");
-        entity.getRoles().add(role);
 
-        entity.setPassword(passwordEncoder.encode(dto.getPassword()));
+        entity.setPassword(passwordEncoder.encode(dto.getPhone()));
         entity.setCreatedAt(Instant.now());
         entity.setUpdatedAt(Instant.now());
 
@@ -93,6 +92,14 @@ public class UserService implements UserDetailsService {
         entity.setEmail(dto.getEmail());
         entity.setPhone(dto.getPhone());
         entity.setUsername(dto.getUsername());
+        for (RoleDTO roleDTO : dto.getRoles()) {
+            String authority = roleDTO.getAuthority();
+            Role role = roleRepository.findByAuthority(authority);
+            if (role == null) {
+                throw new IllegalArgumentException("Role inválida: " + authority);
+            }
+            entity.getRoles().add(role);
+        }
     }
 
     @Override
@@ -125,5 +132,22 @@ public class UserService implements UserDetailsService {
                 () -> new RuntimeException("Cliente não encontrado ou usuário não é um cliente! ID: " + id)
         );
         return new UserDTO(user);
+    }
+
+    @Transactional
+    public UserDTO signUp(UserInsertDTO dto) {
+        User entity = new User();
+        copyDtoToEntity(dto, entity);
+        Role role = roleRepository.findByAuthority("ROLE_CLIENT");
+        if (role == null) {
+            throw new RuntimeException("Erro: A role 'ROLE_CLIENT' não foi encontrada.");
+        }
+        entity.getRoles().clear();
+        entity.getRoles().add(role);
+        entity.setPassword(passwordEncoder.encode(dto.getPassword()));
+        entity.setCreatedAt(Instant.now());
+        entity.setUpdatedAt(Instant.now());
+        User savedUser = userRepository.save(entity);
+        return new UserDTO(savedUser);
     }
 }

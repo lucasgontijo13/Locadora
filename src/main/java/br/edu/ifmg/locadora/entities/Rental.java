@@ -6,7 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Table(name = "tb_rental")
@@ -44,5 +47,28 @@ public class Rental {
         this.vehicle = vehicle;
         this.rentalDate = rentalDate;
         this.returnDate = returnDate;
+    }
+
+
+    public BigDecimal getTotalValue() {
+        if (vehicle == null || rentalDate == null || returnDate == null) {
+            return BigDecimal.ZERO;
+        }
+
+        // 1. Calcula a duração exata entre as duas datas
+        Duration duration = Duration.between(rentalDate, returnDate);
+
+        // 2. Converte a duração para dias, arredondando para cima.
+        // O truque é dividir o total de segundos da duração pelo número de segundos em um dia (86400)
+        // e usar Math.ceil() para garantir que qualquer fração de dia conte como um dia inteiro.
+        long days = (long) Math.ceil((double) duration.getSeconds() / (24 * 60 * 60));
+
+        // 3. Garante que o mínimo seja 1 dia, mesmo que o aluguel seja por poucas horas.
+        if (days == 0) {
+            days = 1;
+        }
+
+        BigDecimal dailyRate = BigDecimal.valueOf(vehicle.getDailyRate());
+        return dailyRate.multiply(BigDecimal.valueOf(days));
     }
 }

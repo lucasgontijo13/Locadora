@@ -7,6 +7,7 @@ import br.edu.ifmg.locadora.entities.Vehicle;
 import br.edu.ifmg.locadora.repositories.RentalRepository;
 import br.edu.ifmg.locadora.repositories.UserRepository;
 import br.edu.ifmg.locadora.repositories.VehicleRepository;
+import br.edu.ifmg.locadora.resources.RentalResource;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -14,6 +15,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
+import java.math.BigDecimal;
 
 @Service
 public class RentalService {
@@ -113,5 +118,38 @@ public class RentalService {
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("Violação de integridade ao deletar aluguel.");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public BigDecimal getTotalValueByUser(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("Usuário não encontrado! ID: " + userId);
+        }
+        BigDecimal totalValue = rentalRepository.findTotalValueByUser(userId);
+        return totalValue != null ? totalValue : BigDecimal.ZERO;
+    }
+
+    @Transactional(readOnly = true)
+    public RentalDTO getHighestValueRentalByUser(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("Usuário não encontrado! ID: " + userId);
+        }
+        Rental highestValueRental = rentalRepository.findHighestValueRentalByUser(userId)
+                .orElseThrow(() -> new RuntimeException("Nenhum aluguel encontrado para o usuário ID: " + userId));
+
+        return new RentalDTO(highestValueRental)
+                .add(linkTo(methodOn(RentalResource.class).findById(highestValueRental.getId())).withSelfRel());
+    }
+
+    @Transactional(readOnly = true)
+    public RentalDTO getLowestValueRentalByUser(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("Usuário não encontrado! ID: " + userId);
+        }
+        Rental lowestValueRental = rentalRepository.findLowestValueRentalByUser(userId)
+                .orElseThrow(() -> new RuntimeException("Nenhum aluguel encontrado para o usuário ID: " + userId));
+
+        return new RentalDTO(lowestValueRental)
+                .add(linkTo(methodOn(RentalResource.class).findById(lowestValueRental.getId())).withSelfRel());
     }
 }

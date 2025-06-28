@@ -2,6 +2,7 @@ package br.edu.ifmg.locadora.resources;
 
 import br.edu.ifmg.locadora.dtos.RentalDTO;
 import br.edu.ifmg.locadora.services.RentalService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -11,7 +12,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.math.BigDecimal;
 import java.net.URI;
+import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/rentals")
@@ -27,10 +30,8 @@ public class RentalResource {
     }
 
     @GetMapping(value = "/{id}")
-
     public ResponseEntity<RentalDTO> findById(@PathVariable Long id) {
-        RentalDTO dto = rentalService.findById(id);
-        return ResponseEntity.ok().body(dto);
+        return ResponseEntity.ok(rentalService.findById(id));
     }
 
     @PostMapping
@@ -52,6 +53,26 @@ public class RentalResource {
 
     @DeleteMapping(value = "/{id}", produces = "application/json")
     public ResponseEntity<RentalDTO> delete(@PathVariable Long id) {
-        return ResponseEntity.ok(rentalService.delete(id));
+        return ResponseEntity.ok().body(rentalService.delete(id));
+    }
+
+
+    @GetMapping(value = "/user/{userId}/total")
+    public ResponseEntity<Map<String, BigDecimal>> getTotalValueByUser(@PathVariable Long userId) {
+        BigDecimal totalValue = rentalService.getTotalValueByUser(userId);
+        Map<String, BigDecimal> response = Map.of("total_alugueis", totalValue);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @GetMapping(value = "/user/{userId}/highest")
+    public ResponseEntity<RentalDTO> getHighestValueRentalByUser(@PathVariable Long userId) {
+        RentalDTO highestValueRental = rentalService.getHighestValueRentalByUser(userId);
+        return ResponseEntity.ok().body(highestValueRental);
+    }
+
+    @GetMapping(value = "/user/{userId}/lowest")
+    public ResponseEntity<RentalDTO> getLowestValueRentalByUser(@PathVariable Long userId) {
+        RentalDTO lowestValueRental = rentalService.getLowestValueRentalByUser(userId);
+        return ResponseEntity.ok().body(lowestValueRental);
     }
 }

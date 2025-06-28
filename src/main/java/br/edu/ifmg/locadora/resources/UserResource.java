@@ -65,4 +65,16 @@ public class UserResource {
         UserDTO dto = userService.findClientById(id);
         return ResponseEntity.ok().body(dto);
     }
+
+    @PostMapping("/signup")
+    public ResponseEntity<UserDTO> signUp(@Valid @RequestBody UserInsertDTO dto) {
+        UserDTO newUser = userService.signUp(dto);
+
+        // Cria a URI para o novo recurso criado
+        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+                .buildAndExpand(newUser.getId()).toUri();
+
+        // Retorna o status 201 Created com a URI e o objeto criado no corpo
+        return ResponseEntity.created(uri).body(newUser);
+    }
 }

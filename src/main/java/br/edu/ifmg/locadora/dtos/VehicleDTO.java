@@ -4,11 +4,12 @@ import br.edu.ifmg.locadora.entities.Vehicle;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.hateoas.RepresentationModel;
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class VehicleDTO {
+public class VehicleDTO extends RepresentationModel<InvoiceDTO> {
     private Long id;
     private String brand;
     private String model;
