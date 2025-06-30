@@ -2,6 +2,9 @@ package br.edu.ifmg.locadora.resources;
 
 import br.edu.ifmg.locadora.dtos.VehicleDTO;
 import br.edu.ifmg.locadora.services.VehicleService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,24 +18,52 @@ import java.net.URI;
 
 @RestController
 @RequestMapping(value = "/vehicles")
+@Tag(name = "Veículos", description = "Endpoints para gerenciamento de veículos")
 public class VehicleResource {
 
     @Autowired
     private VehicleService vehicleService;
 
-    @GetMapping
+    @Operation(
+            summary = "Busca todos os veículos (paginado)",
+            description = "Retorna uma lista paginada de todos os veículos disponíveis no sistema. Endpoint público.",
+            responses = {
+                    @ApiResponse(description = "OK", responseCode = "200")
+            }
+    )
+    @GetMapping(produces = "application/json")
     public ResponseEntity<Page<VehicleDTO>> findAll(Pageable pageable) {
         Page<VehicleDTO> page = vehicleService.findAll(pageable);
         return ResponseEntity.ok().body(page);
     }
 
-    @GetMapping(value = "/{id}")
+    @Operation(
+            summary = "Busca um veículo por ID",
+            description = "Retorna os detalhes de um veículo específico. Endpoint público.",
+            responses = {
+                    @ApiResponse(description = "OK", responseCode = "200"),
+                    @ApiResponse(description = "Not Found", responseCode = "404")
+            }
+    )
+    @GetMapping(value = "/{id}", produces = "application/json")
     public ResponseEntity<VehicleDTO> findById(@PathVariable Long id) {
         VehicleDTO dto = vehicleService.findById(id);
         return ResponseEntity.ok().body(dto);
     }
 
-    @PostMapping
+    @Operation(
+            summary = "Insere um novo veículo ",
+            description = "Cria o registro de um novo veículo no sistema. Acesso restrito a administradores.",
+            responses = {
+                    @ApiResponse(description = "Created", responseCode = "201"),
+                    @ApiResponse(description = "Bad Request", responseCode = "400"),
+                    @ApiResponse(description = "Unauthorized", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden", responseCode = "403"),
+                    @ApiResponse(description = "Unprocessable Entity", responseCode = "422")
+            }
+    )
+    @PostMapping(produces = "application/json")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<VehicleDTO> insert(@Valid @RequestBody VehicleDTO dto) {
         dto = vehicleService.insert(dto);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
@@ -40,13 +71,38 @@ public class VehicleResource {
         return ResponseEntity.created(uri).body(dto);
     }
 
-    @PutMapping(value = "/{id}")
+    @Operation(
+            summary = "Atualiza um veículo ",
+            description = "Atualiza os dados de um veículo existente. Acesso restrito a administradores.",
+            responses = {
+                    @ApiResponse(description = "OK", responseCode = "200"),
+                    @ApiResponse(description = "Bad Request", responseCode = "400"),
+                    @ApiResponse(description = "Unauthorized", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden", responseCode = "403"),
+                    @ApiResponse(description = "Not Found", responseCode = "404"),
+                    @ApiResponse(description = "Unprocessable Entity", responseCode = "422")
+            }
+    )
+    @PutMapping(value = "/{id}", produces = "application/json")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<VehicleDTO> update(@PathVariable Long id, @Valid @RequestBody VehicleDTO dto) {
         dto = vehicleService.update(id, dto);
         return ResponseEntity.ok().body(dto);
     }
 
-    @DeleteMapping(value = "/{id}")
+    @Operation(
+            summary = "Deleta um veículo (Admin)",
+            description = "Remove o registro de um veículo. Não pode ser executado se o veículo tiver aluguéis associados. Acesso restrito a administradores.",
+            responses = {
+                    @ApiResponse(description = "OK", responseCode = "200"),
+                    @ApiResponse(description = "Bad Request", responseCode = "400"),
+                    @ApiResponse(description = "Unauthorized", responseCode = "401"),
+                    @ApiResponse(description = "Forbidden", responseCode = "403"),
+                    @ApiResponse(description = "Not Found", responseCode = "404")
+            }
+    )
+    @DeleteMapping(value = "/{id}", produces = "application/json")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<VehicleDTO> delete(@PathVariable Long id) {
         return ResponseEntity.ok().body(vehicleService.delete(id));
     }

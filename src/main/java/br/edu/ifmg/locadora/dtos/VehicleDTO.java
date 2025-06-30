@@ -9,7 +9,7 @@ import org.springframework.hateoas.RepresentationModel;
 @Getter
 @Setter
 @NoArgsConstructor
-public class VehicleDTO extends RepresentationModel<InvoiceDTO> {
+public class VehicleDTO extends RepresentationModel<VehicleDTO> {
     private Long id;
     private String brand;
     private String model;

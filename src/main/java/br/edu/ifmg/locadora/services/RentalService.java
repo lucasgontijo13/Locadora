@@ -35,7 +35,11 @@ public class RentalService {
     @Transactional(readOnly = true)
     public Page<RentalDTO> findAll(Pageable pageable) {
         Page<Rental> page = rentalRepository.findAll(pageable);
-        return page.map(RentalDTO::new);
+
+        return page.map(rental -> new RentalDTO(rental)
+                .add(linkTo(methodOn(RentalResource.class).findById(rental.getId())).withSelfRel())
+                .add(linkTo(methodOn(RentalResource.class).findById(rental.getId())).withRel("Get rental"))
+        );
     }
 
     @Transactional(readOnly = true)
@@ -43,7 +47,9 @@ public class RentalService {
         Rental rental = rentalRepository.findById(id).orElseThrow(
                 () -> new RuntimeException("Aluguel não encontrado! ID: " + id)
         );
-        return new RentalDTO(rental);
+        return new RentalDTO(rental)
+                .add(linkTo(methodOn(RentalResource.class).findById(id)).withSelfRel())
+                .add(linkTo(methodOn(RentalResource.class).findAll(null)).withRel("Get all rentals"));
     }
 
     @Transactional
@@ -62,14 +68,17 @@ public class RentalService {
             throw new RuntimeException("A data de retorno não pode ser anterior à data de locação.");
         }
 
+
         Rental entity = new Rental();
         entity.setUser(user);
         entity.setVehicle(vehicle);
         entity.setRentalDate(dto.getRentalDate());
         entity.setReturnDate(dto.getReturnDate());
 
-        entity = rentalRepository.save(entity);
-        return new RentalDTO(entity);
+        Rental savedEntity = rentalRepository.save(entity);
+        return new RentalDTO(savedEntity)
+                .add(linkTo(methodOn(RentalResource.class).findById(savedEntity.getId())).withRel("Get rental"))
+                .add(linkTo(methodOn(RentalResource.class).findAll(null)).withRel("Get all rentals"));
     }
 
     @Transactional
@@ -100,7 +109,9 @@ public class RentalService {
             entity.setReturnDate(dto.getReturnDate());
 
             entity = rentalRepository.save(entity);
-            return new RentalDTO(entity);
+            return new RentalDTO(entity)
+                    .add(linkTo(methodOn(RentalResource.class).findById(id)).withSelfRel())
+                    .add(linkTo(methodOn(RentalResource.class).findAll(null)).withRel("Get all rentals"));
         } catch (EntityNotFoundException e) {
             throw new RuntimeException("Aluguel não encontrado! ID: " + id);
         }
@@ -139,6 +150,7 @@ public class RentalService {
 
         return new RentalDTO(highestValueRental)
                 .add(linkTo(methodOn(RentalResource.class).findById(highestValueRental.getId())).withSelfRel());
+
     }
 
     @Transactional(readOnly = true)

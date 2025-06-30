@@ -8,6 +8,7 @@ import br.edu.ifmg.locadora.entities.User;
 import br.edu.ifmg.locadora.projections.UserDetailsProjection;
 import br.edu.ifmg.locadora.repositories.RoleRepository;
 import br.edu.ifmg.locadora.repositories.UserRepository;
+import br.edu.ifmg.locadora.resources.UserResource;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -19,7 +20,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import java.time.Instant;
 import java.util.List;
 
@@ -38,7 +39,10 @@ public class UserService implements UserDetailsService {
     @Transactional(readOnly = true)
     public Page<UserDTO> findAll(Pageable pageable) {
         Page<User> page = userRepository.findAll(pageable);
-        return page.map(UserDTO::new);
+        return page.map(user -> new UserDTO(user)
+                .add(linkTo(methodOn(UserResource.class).findAll(null)).withSelfRel())
+                .add(linkTo(methodOn(UserResource.class).findById(user.getId())).withRel("Get a user"))
+        );
     }
 
     @Transactional(readOnly = true)
@@ -46,7 +50,11 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new RuntimeException("Usuário não encontrado! ID: " + id)
         );
-        return new UserDTO(user);
+        return new UserDTO(user)
+                .add(linkTo(methodOn(UserResource.class).findById(id)).withSelfRel())
+                .add(linkTo(methodOn(UserResource.class).findAll(null)).withRel("Get all users"))
+                .add(linkTo(methodOn(UserResource.class).update(id, new UserDTO(user))).withRel("Update a user"))
+                .add(linkTo(methodOn(UserResource.class).delete(id)).withRel("Delete a user"));
     }
 
     @Transactional
@@ -60,7 +68,11 @@ public class UserService implements UserDetailsService {
         entity.setUpdatedAt(Instant.now());
 
         entity = userRepository.save(entity);
-        return new UserDTO(entity);
+        return new UserDTO(entity)
+                .add(linkTo(methodOn(UserResource.class).findById(entity.getId())).withRel("Get a user"))
+                .add(linkTo(methodOn(UserResource.class).findAll(null)).withRel("Get all users"))
+                .add(linkTo(methodOn(UserResource.class).update(entity.getId(), new UserDTO(entity))).withRel("Update a user"))
+                .add(linkTo(methodOn(UserResource.class).delete(entity.getId())).withRel("Delete user"));
     }
 
     @Transactional
@@ -70,7 +82,10 @@ public class UserService implements UserDetailsService {
             copyDtoToEntity(dto, entity);
             entity.setUpdatedAt(Instant.now());
             entity = userRepository.save(entity);
-            return new UserDTO(entity);
+            return new UserDTO(entity)
+                    .add(linkTo(methodOn(UserResource.class).findById(id)).withRel("Find user by id"))
+                    .add(linkTo(methodOn(UserResource.class).findAll(null)).withRel("All users"))
+                    .add(linkTo(methodOn(UserResource.class).delete(id)).withRel("Delete user"));
         } catch (EntityNotFoundException e) {
             throw new RuntimeException("Usuário não encontrado! ID: " + id);
         }
@@ -85,6 +100,26 @@ public class UserService implements UserDetailsService {
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("Violação de integridade: este usuário não pode ser deletado.");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserDTO> findAllClients(Pageable pageable) {
+        Page<User> page = userRepository.findAllClients(pageable);
+        return page.map(user -> new UserDTO(user)
+                .add(linkTo(methodOn(UserResource.class).findAllClients(null)).withSelfRel())
+                .add(linkTo(methodOn(UserResource.class).findClientById(user.getId())).withRel("Get a client"))
+        );
+    }
+
+
+    @Transactional(readOnly = true)
+    public UserDTO findClientById(Long id) {
+        User user = userRepository.findClientById(id).orElseThrow(
+                () -> new RuntimeException("Cliente não encontrado ou usuário não é um cliente! ID: " + id)
+        );
+        return new UserDTO(user)
+                .add(linkTo(methodOn(UserResource.class).findClientById(id)).withSelfRel())
+                .add(linkTo(methodOn(UserResource.class).findAllClients(null)).withRel("Get all clients"));
     }
 
     private void copyDtoToEntity(UserDTO dto, User entity) {
@@ -119,20 +154,7 @@ public class UserService implements UserDetailsService {
         return user;
     }
 
-    @Transactional(readOnly = true)
-    public Page<UserDTO> findAllClients(Pageable pageable) {
-        Page<User> page = userRepository.findAllClients(pageable);
-        return page.map(UserDTO::new);
-    }
 
-
-    @Transactional(readOnly = true)
-    public UserDTO findClientById(Long id) {
-        User user = userRepository.findClientById(id).orElseThrow(
-                () -> new RuntimeException("Cliente não encontrado ou usuário não é um cliente! ID: " + id)
-        );
-        return new UserDTO(user);
-    }
 
     @Transactional
     public UserDTO signUp(UserInsertDTO dto) {

@@ -3,6 +3,7 @@ package br.edu.ifmg.locadora.services;
 import br.edu.ifmg.locadora.dtos.VehicleDTO;
 import br.edu.ifmg.locadora.entities.Vehicle;
 import br.edu.ifmg.locadora.repositories.VehicleRepository;
+import br.edu.ifmg.locadora.resources.VehicleResource;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -10,7 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import java.time.Instant;
 
 @Service
@@ -22,7 +23,11 @@ public class VehicleService {
     @Transactional(readOnly = true)
     public Page<VehicleDTO> findAll(Pageable pageable) {
         Page<Vehicle> page = vehicleRepository.findAll(pageable);
-        return page.map(VehicleDTO::new);
+        return page.map(
+                vehicle -> new VehicleDTO(vehicle)
+                        .add(linkTo(methodOn(VehicleResource.class).findAll(null)).withSelfRel())
+                        .add(linkTo(methodOn(VehicleResource.class).findById(vehicle.getId())).withRel("Get a vehicle"))
+        );
     }
 
     @Transactional(readOnly = true)
@@ -30,7 +35,10 @@ public class VehicleService {
         Vehicle vehicle = vehicleRepository.findById(id).orElseThrow(
                 () -> new RuntimeException("Veículo não encontrado! ID: " + id)
         );
-        return new VehicleDTO(vehicle);
+        return new VehicleDTO(vehicle)
+                .add(linkTo(methodOn(VehicleResource.class).findById(id)).withSelfRel())
+                .add(linkTo(methodOn(VehicleResource.class).update(id, new VehicleDTO(vehicle))).withRel("Update a vehicle"))
+                .add(linkTo(methodOn(VehicleResource.class).delete(id)).withRel("Delete a vehicle"));
     }
 
     @Transactional
@@ -40,7 +48,11 @@ public class VehicleService {
         entity.setCreatedAt(Instant.now());
         entity.setUpdatedAt(Instant.now());
         entity = vehicleRepository.save(entity);
-        return new VehicleDTO(entity);
+        return new VehicleDTO(entity)
+                .add(linkTo(methodOn(VehicleResource.class).findById(entity.getId())).withRel("Get a vehicle"))
+                .add(linkTo(methodOn(VehicleResource.class).findAll(null)).withRel("All vehicles"))
+                .add(linkTo(methodOn(VehicleResource.class).update(entity.getId(), new VehicleDTO(entity))).withRel("Update vehicle"))
+                .add(linkTo(methodOn(VehicleResource.class).delete(entity.getId())).withRel("Delete vehicle"));
     }
 
     @Transactional
@@ -50,7 +62,10 @@ public class VehicleService {
             copyDtoToEntity(dto, entity);
             entity.setUpdatedAt(Instant.now());
             entity = vehicleRepository.save(entity);
-            return new VehicleDTO(entity);
+            return new VehicleDTO(entity)
+                    .add(linkTo(methodOn(VehicleResource.class).findById(entity.getId())).withSelfRel())
+                    .add(linkTo(methodOn(VehicleResource.class).findAll(null)).withRel("All vehicles"))
+                    .add(linkTo(methodOn(VehicleResource.class).delete(entity.getId())).withRel("Delete vehicle"));
         } catch (EntityNotFoundException e) {
             throw new RuntimeException("Veículo não encontrado! ID: " + id);
         }
