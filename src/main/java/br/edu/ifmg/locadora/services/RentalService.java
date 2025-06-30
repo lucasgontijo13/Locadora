@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RentalService {
@@ -129,6 +131,23 @@ public class RentalService {
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("Violação de integridade ao deletar aluguel.");
         }
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<RentalDTO> findByUserId(Long userId) {
+        // Verifica se o usuário existe para dar um erro claro
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("User id: " + userId + " not found"); // Substitua pela sua exceção customizada
+        }
+
+        // Busca a lista de aluguéis no repositório
+        List<Rental> list = rentalRepository.findByUserId(userId);
+
+        // Mapeia a lista de entidades para uma lista de DTOs
+        return list.stream()
+                .map(RentalDTO::new)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)

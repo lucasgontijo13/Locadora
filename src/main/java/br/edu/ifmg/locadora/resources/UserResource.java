@@ -52,7 +52,7 @@ public class UserResource {
             }
     )
     @GetMapping(value = "/{id}", produces = "application/json")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN') or #id == authentication.principal.id")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<UserDTO> findById(@PathVariable Long id) {
         UserDTO dto = userService.findById(id);
         return ResponseEntity.ok().body(dto);
@@ -143,7 +143,7 @@ public class UserResource {
             }
     )
     @GetMapping(value = "/clients/{id}", produces = "application/json")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN') or #id == authentication.principal.id")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<UserDTO> findClientById(@PathVariable Long id) {
         UserDTO dto = userService.findClientById(id);
         return ResponseEntity.ok().body(dto);

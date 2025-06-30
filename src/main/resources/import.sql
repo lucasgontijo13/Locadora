@@ -3,13 +3,13 @@ INSERT INTO tb_role (id, authority) VALUES (1, 'ROLE_CLIENT');
 INSERT INTO tb_role (id, authority) VALUES (2, 'ROLE_ADMIN');
 
 -- Inserir Usuários na nova tabela "tb_user"
-INSERT INTO tb_user (name, email, phone, username, password, created_at, updated_at) VALUES ('Maria Cliente', 'maria@email.com', '37999887766', 'lucas', '$2a$10$eACCYoNOHEqXve8aIWT8Nu3PkMXWBaOxJ9aORUYzfMQCbVBIhZ8tG', NOW(), NOW());
+INSERT INTO tb_user (name, email, phone, username, password, created_at, updated_at) VALUES ('Maria Cliente', 'lucasgontijo111@gmail.com', '37999887766', 'lucas', '$2a$10$eACCYoNOHEqXve8aIWT8Nu3PkMXWBaOxJ9aORUYzfMQCbVBIhZ8tG', NOW(), NOW());
 INSERT INTO tb_user (name, email, phone, username, password, created_at, updated_at) VALUES ('Joao Admin', 'joao@email.com', '37988776655', 'joao', '$2a$10$eACCYoNOHEqXve8aIWT8Nu3PkMXWBaOxJ9aORUYzfMQCbVBIhZ8tG', NOW(), NOW());
 INSERT INTO tb_user (name, email, phone, username, password, created_at, updated_at) VALUES ('Ana Cliente', 'ana@email.com', '37999554433', 'ana', '$2a$10$eACCYoNOHEqXve8aIWT8Nu3PkMXWBaOxJ9aORUYzfMQCbVBIhZ8tG', NOW(), NOW());
 
 -- Associar Usuários com suas Roles (a tabela de junção não mudou de nome)
-INSERT INTO user_role (user_id, role_id) VALUES (1, 1);
-INSERT INTO user_role (user_id, role_id) VALUES (2, 2);
+INSERT INTO user_role (user_id, role_id) VALUES (1, 2);
+INSERT INTO user_role (user_id, role_id) VALUES (2, 1);
 INSERT INTO user_role (user_id, role_id) VALUES (3, 1);
 
 -- Inserir Veículos na nova tabela "tb_vehicle"

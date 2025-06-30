@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.Objects;
 
 @Entity
-@Table(name = "tb_password_recover")
+@Table(name = "password_recover")
 public class PasswordRecover {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

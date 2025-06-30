@@ -4,6 +4,7 @@ import br.edu.ifmg.locadora.dtos.RentalDTO;
 import br.edu.ifmg.locadora.services.RentalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,10 +16,12 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.math.BigDecimal;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/rentals")
+@Tag(name = "Rentals", description = "Endpoints para gerenciamento de alugueis")
 public class RentalResource {
 
     @Autowired
@@ -109,6 +112,24 @@ public class RentalResource {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public ResponseEntity<RentalDTO> delete(@PathVariable Long id) {
         return ResponseEntity.ok().body(rentalService.delete(id));
+    }
+
+
+    @Operation(
+            summary = "Busca todos os aluguéis de um usuário",
+            description = "Busca todos os aluguéis de um determinado usuário pelo ID. Acesso permitido para administradores ou para o próprio usuário.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "OK"),
+                    @ApiResponse(responseCode = "404", description = "User Not Found"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Forbidden")
+            }
+    )
+    @GetMapping(value = "/user/{userId}", produces = "application/json")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<List<RentalDTO>> findByUserId(@PathVariable Long userId) {
+        List<RentalDTO> list = rentalService.findByUserId(userId);
+        return ResponseEntity.ok(list);
     }
 
     @Operation(
