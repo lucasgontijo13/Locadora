@@ -13,6 +13,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class VehicleService {
@@ -85,6 +90,24 @@ public class VehicleService {
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("Violação de integridade: este veículo não pode ser deletado, pois possui aluguéis associados.");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<VehicleDTO> findAvailable(LocalDate startDate, LocalDate endDate) {
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("A data de início não pode ser posterior à data de fim.");
+        }
+
+        // Converte LocalDate para Instant
+        Instant startInstant = startDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+        Instant endInstant = endDate.atTime(LocalTime.MAX).toInstant(ZoneOffset.UTC);
+
+        List<Vehicle> vehicles = vehicleRepository.findAvailableVehicles(startInstant, endInstant);
+
+        return vehicles.stream()
+                .map(vehicle -> new VehicleDTO(vehicle)
+                        .add(linkTo(methodOn(VehicleResource.class).findById(vehicle.getId())).withSelfRel()))
+                .collect(Collectors.toList());
     }
 
     private void copyDtoToEntity(VehicleDTO dto, Vehicle entity) {

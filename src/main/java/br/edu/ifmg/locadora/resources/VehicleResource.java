@@ -9,12 +9,16 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/vehicles")
@@ -105,5 +109,21 @@ public class VehicleResource {
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<VehicleDTO> delete(@PathVariable Long id) {
         return ResponseEntity.ok().body(vehicleService.delete(id));
+    }
+
+    @Operation(
+            summary = "Busca veículos disponíveis por período",
+            description = "Retorna uma lista de todos os veículos que não possuem aluguéis conflitantes com o período de datas informado. As datas devem ser informadas no formato ISO-8601 (ex: 2024-12-25T14:00:00Z).",
+            responses = {
+                    @ApiResponse(description = "Success", responseCode = "200"),
+                    @ApiResponse(description = "Bad Request - Datas inválidas", responseCode = "400")
+            }
+    )
+    @GetMapping(value = "/available/{startDate}/{endDate}", produces = "application/json")
+    public ResponseEntity<List<VehicleDTO>> findAvailable(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        List<VehicleDTO> list = vehicleService.findAvailable(startDate, endDate);
+        return ResponseEntity.ok().body(list);
     }
 }
