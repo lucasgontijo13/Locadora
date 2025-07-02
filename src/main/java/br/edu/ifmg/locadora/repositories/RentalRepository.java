@@ -53,4 +53,6 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
     """)
     Optional<Rental> findLowestValueRentalByUser(@Param("userId") Long userId);
 
+    boolean existsByVehicleId(Long vehicleId);
+
 }

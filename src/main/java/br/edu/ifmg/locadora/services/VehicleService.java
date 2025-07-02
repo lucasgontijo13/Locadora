@@ -2,6 +2,7 @@ package br.edu.ifmg.locadora.services;
 
 import br.edu.ifmg.locadora.dtos.VehicleDTO;
 import br.edu.ifmg.locadora.entities.Vehicle;
+import br.edu.ifmg.locadora.repositories.RentalRepository;
 import br.edu.ifmg.locadora.repositories.VehicleRepository;
 import br.edu.ifmg.locadora.resources.VehicleResource;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,6 +25,8 @@ public class VehicleService {
 
     @Autowired
     private VehicleRepository vehicleRepository;
+    @Autowired
+    private RentalRepository rentalRepository;
 
     @Transactional(readOnly = true)
     public Page<VehicleDTO> findAll(Pageable pageable) {
@@ -81,16 +84,22 @@ public class VehicleService {
         if (!vehicleRepository.existsById(id)) {
             throw new RuntimeException("Veículo não encontrado! ID: " + id);
         }
+
+        // Verificação proativa: veja se existem aluguéis associados ANTES de deletar.
+        if (rentalRepository.existsByVehicleId(id)) {
+            throw new RuntimeException("Violação de integridade: este veículo não pode ser deletado, pois possui aluguéis associados.");
+        }
+
         try {
-            // Lógica exata do seu exemplo: usa getReferenceById
             Vehicle vehicle = vehicleRepository.getReferenceById(id);
             vehicleRepository.delete(vehicle);
             return new VehicleDTO(vehicle);
-
         } catch (DataIntegrityViolationException e) {
-            throw new RuntimeException("Violação de integridade: este veículo não pode ser deletado, pois possui aluguéis associados.");
+            // Este bloco agora serve como uma segunda camada de segurança.
+            throw new RuntimeException("Violação de integridade: este veículo não pode ser deletado.");
         }
     }
+
 
     @Transactional(readOnly = true)
     public List<VehicleDTO> findAvailable(LocalDate startDate, LocalDate endDate) {
