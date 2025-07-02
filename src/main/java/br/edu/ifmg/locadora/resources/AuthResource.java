@@ -28,7 +28,7 @@ public class AuthResource {
                     @ApiResponse(responseCode = "422", description = "E-mail não encontrado ou já existe um token válido")
             }
     )
-    @PostMapping(value = "recover-token", consumes = "application/json")
+    @PostMapping(value = "/recover-token", consumes = "application/json")
     public ResponseEntity<Void> createRecoverToken (@Valid @RequestBody RequestTokenDTO dto) {
         authService.createRecoverToken(dto);
         return ResponseEntity.noContent().build();
@@ -42,7 +42,7 @@ public class AuthResource {
                     @ApiResponse(responseCode = "422", description = "Token inválido ou já utilizado")
             }
     )
-    @PostMapping(value = "new-password", consumes = "application/json")
+    @PostMapping(value = "/new-password", consumes = "application/json")
     public ResponseEntity<Void> saveNewPassword (@Valid @RequestBody NewPasswordDTO dto) {
         authService.saveNewPassword(dto);
         return ResponseEntity.noContent().build();
